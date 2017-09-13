@@ -12,7 +12,7 @@ public class Tweet {
     private Long id;
     @Column(nullable = false)
     private String publisher;
-    @Column(nullable = false, length = 140)
+    @Column(nullable = false, columnDefinition="CLOB")
     private String tweet;
     @Column (nullable=true)
     private Long pre2015MigrationStatus = 0L;

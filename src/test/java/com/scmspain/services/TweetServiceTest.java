@@ -31,6 +31,14 @@ public class TweetServiceTest {
         verify(entityManager).persist(any(Tweet.class));
     }
 
+    // Ignore links embedded in the tweet content when validating against length restriction
+    @Test
+    public void shouldInsertANewTweetIgnoringEmbeddedLinks() throws Exception {
+        tweetService.publishTweet("Guybrush Threepwood", "I am Guybrush http://www.vidaextra.com/aventura-plataformas/el-demake-de-the-curse-of-monkey-island-esta-cada-vez-mas-cerca-de-ver-la-luz Threepwood, mighty pirate https://www.vidaextra.com/aventura-plataformas/el-demake-de-the-curse-of-monkey-island-esta-cada-vez-mas-cerca-de-ver-la-luz");
+
+        verify(entityManager).persist(any(Tweet.class));
+    }
+
     @Test(expected = IllegalArgumentException.class)
     public void shouldThrowAnExceptionWhenTweetIsEmpty() throws Exception {
         tweetService.publishTweet("Guybrush Threepwood", "");

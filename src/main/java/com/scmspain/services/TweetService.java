@@ -38,7 +38,8 @@ public class TweetService {
             throw new IllegalArgumentException("A Tweet can't be empty");
         }
 
-        if(text != null && text.length() > 140){
+        String delinked = text.replaceAll("[\\s]*(http[s]*)://[^\\s]+","");
+        if(delinked.length() > 140){
             throw new IllegalArgumentException("Tweet must not be greater than 140 characters");
         }
 
