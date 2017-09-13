@@ -47,8 +47,8 @@ public class TweetService {
         tweet.setTweet(text);
         tweet.setPublisher(publisher);
 
-        this.metricWriter.increment(new Delta<Number>("published-tweets", 1));
         this.entityManager.persist(tweet);
+        this.metricWriter.increment(new Delta<Number>("published-tweets", 1));
     }
 
     /**
