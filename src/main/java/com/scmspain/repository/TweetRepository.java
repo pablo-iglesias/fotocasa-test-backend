@@ -9,4 +9,5 @@ public interface TweetRepository {
     void persist(Tweet tweet);
     Tweet get(Long id);
     List<Tweet> getAllNonDiscarded();
+    List<Tweet> getAllDiscarded();
 }

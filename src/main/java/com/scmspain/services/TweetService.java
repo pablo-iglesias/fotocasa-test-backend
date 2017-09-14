@@ -86,7 +86,17 @@ public class TweetService {
     public List<Tweet> listAllTweets() {
 
         this.metricWriter.increment(new Delta<Number>("times-queried-tweets", 1));
-        List<Tweet> result = this.tweetRepository.getAllNonDiscarded();
-        return result;
+        return this.tweetRepository.getAllNonDiscarded();
+    }
+
+    /**
+     * Retrieve a list with all the discarded Tweets
+     *
+     * @return list of Tweet objects
+     */
+    public List<Tweet> listDiscardedTweets() {
+
+        this.metricWriter.increment(new Delta<Number>("times-queried-discarded-tweets", 1));
+        return this.tweetRepository.getAllDiscarded();
     }
 }

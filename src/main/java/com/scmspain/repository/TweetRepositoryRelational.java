@@ -19,7 +19,7 @@ public class TweetRepositoryRelational implements TweetRepository{
     /**
      * Persists a tweet in the repository
      *
-     * @param tweet
+     * @param tweet - Tweet object
      */
     public void persist(Tweet tweet){
         entityManager.persist(tweet);
@@ -48,8 +48,22 @@ public class TweetRepositoryRelational implements TweetRepository{
         sql += " ORDER BY id DESC";
 
         TypedQuery<Tweet> query = entityManager.createQuery(sql, Tweet.class);
-        List<Tweet> tweets = query.getResultList();
+        return query.getResultList();
+    }
 
-        return tweets;
+    /**
+     * Retrieve a list with all the discarded Tweets
+     *
+     * @return list of Tweet objects
+     */
+    public List<Tweet> getAllDiscarded() {
+
+        String sql = "SELECT e FROM " + entityName + " e";
+        sql += " WHERE pre2015MigrationStatus<>99";
+        sql += " AND discarded = TRUE";
+        sql += " ORDER BY id DESC";
+
+        TypedQuery<Tweet> query = entityManager.createQuery(sql, Tweet.class);
+        return query.getResultList();
     }
 }

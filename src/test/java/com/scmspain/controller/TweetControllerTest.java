@@ -90,6 +90,17 @@ public class TweetControllerTest {
         assertThat(new ObjectMapper().readValue(content, List.class).size()).isEqualTo(0);
     }
 
+    @Test // Caution, stateful test, depends on shouldDiscardATweet
+    public void shouldReturnAllDiscardedTweets() throws Exception {
+
+        MvcResult getResult = mockMvc.perform(get("/discarded"))
+                .andExpect(status().is(200))
+                .andReturn();
+
+        String content = getResult.getResponse().getContentAsString();
+        assertThat(new ObjectMapper().readValue(content, List.class).size()).isEqualTo(1);
+    }
+
     private MockHttpServletRequestBuilder newTweet(String publisher, String tweet) {
         return post("/tweet")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)

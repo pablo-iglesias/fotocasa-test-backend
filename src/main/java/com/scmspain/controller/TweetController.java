@@ -29,6 +29,9 @@ public class TweetController {
         this.tweetService.publishTweet(publishTweetCommand.getPublisher(), publishTweetCommand.getTweet());
     }
 
+    @GetMapping("/discarded")
+    public List<Tweet> listDiscardedTweets() { return this.tweetService.listDiscardedTweets(); }
+
     @PostMapping("/discarded")
     @ResponseStatus(CREATED)
     public void discardTweet(@RequestBody DiscardTweetCommand discardTweetCommand) {
