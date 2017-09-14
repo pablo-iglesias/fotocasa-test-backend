@@ -2,6 +2,8 @@ package com.scmspain.services;
 
 import com.scmspain.entities.Tweet;
 import com.scmspain.exceptions.ResourceNotFoundException;
+import com.scmspain.repository.TweetRepository;
+import com.scmspain.repository.TweetRepositoryRelational;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.boot.actuate.metrics.writer.MetricWriter;
@@ -23,6 +25,7 @@ public class TweetServiceTest {
     private final static Long INEXISTANT_TWEET_ID = 3L;
 
     private EntityManager entityManager;
+    private TweetRepository tweetRepository;
     private MetricWriter metricWriter;
     private TweetService tweetService;
 
@@ -43,7 +46,9 @@ public class TweetServiceTest {
         Mockito.when(entityManager.find(Tweet.class, INEXISTANT_TWEET_ID))
                 .thenReturn(null);
 
-        this.tweetService = new TweetService(entityManager, metricWriter);
+
+        this.tweetRepository = new TweetRepositoryRelational(entityManager);
+        this.tweetService = new TweetService(tweetRepository, metricWriter);
     }
 
     @Test

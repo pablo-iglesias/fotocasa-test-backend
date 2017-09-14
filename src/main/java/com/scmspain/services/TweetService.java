@@ -3,35 +3,31 @@ package com.scmspain.services;
 import com.scmspain.entities.Tweet;
 import com.scmspain.exceptions.ResourceNotFoundException;
 
+import com.scmspain.repository.TweetRepository;
 import org.springframework.boot.actuate.metrics.writer.Delta;
 import org.springframework.boot.actuate.metrics.writer.MetricWriter;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
-import java.util.ArrayList;
 import java.util.List;
 
-// TODO: Refactor comments
-// TODO: Create a tweet repository
 @Service
 @Transactional
 public class TweetService {
-    private EntityManager entityManager;
+    private TweetRepository tweetRepository;
     private MetricWriter metricWriter;
 
-    public TweetService(EntityManager entityManager, MetricWriter metricWriter) {
-        this.entityManager = entityManager;
+    public TweetService(TweetRepository tweetRepository, MetricWriter metricWriter) {
+        this.tweetRepository = tweetRepository;
         this.metricWriter = metricWriter;
     }
 
     /**
-      Push tweet to repository
-      Parameter - publisher - creator of the Tweet
-      Parameter - text - Content of the Tweet
-      Result - recovered Tweet
-    */
+     * Push tweet to repository
+     *
+     * @param publisher - creator of the Tweet
+     * @param text - Content of the Tweet
+     */
     public void publishTweet(String publisher, String text) {
 
         if (publisher == null || publisher.length() == 0){
@@ -52,14 +48,14 @@ public class TweetService {
         tweet.setPublisher(publisher);
         tweet.setDiscarded(Boolean.FALSE);
 
-        this.entityManager.persist(tweet);
+        this.tweetRepository.persist(tweet);
         this.metricWriter.increment(new Delta<Number>("published-tweets", 1));
     }
 
     /**
-      Set a tweet to discarded status
-      Parameter - id - id of the Tweet to discard
-      Result - discarded Tweet
+     * Set a tweet to discarded state
+     *
+     * @param id - id of the Tweet to discard
      */
     public void discardTweet(Long id){
 
@@ -67,42 +63,30 @@ public class TweetService {
             throw new IllegalArgumentException("To discard a tweet, you must provide an ID");
         }
 
-        Tweet tweet = getTweet(id);
+        Tweet tweet = this.tweetRepository.get(id);
 
         if(tweet == null){
             throw new ResourceNotFoundException("Specified ID does not correspond to an existing tweet");
         }
 
         // The API is idempotent about discarding a tweet
-        // The response is always 201, persisting the object and incrementing the metric is done once
+        // The response is always 201, the business is done once
         if(!tweet.getDiscarded()){
             tweet.setDiscarded(Boolean.TRUE);
-            this.entityManager.persist(tweet);
+            this.tweetRepository.persist(tweet);
             this.metricWriter.increment(new Delta<Number>("discarded-tweets", 1));
         }
     }
 
     /**
-      Recover tweet from repository
-      Parameter - id - id of the Tweet to retrieve
-      Result - retrieved Tweet
-    */
-    public Tweet getTweet(Long id) {
-      return this.entityManager.find(Tweet.class, id);
-    }
-
-    /**
-      Recover tweet from repository
-      Result - retrieved Tweet
-    */
+     * Retrieve a list with all the non discarded Tweets
+     *
+     * @return list of Tweet objects
+     */
     public List<Tweet> listAllTweets() {
-        List<Tweet> result = new ArrayList<Tweet>();
+
         this.metricWriter.increment(new Delta<Number>("times-queried-tweets", 1));
-        TypedQuery<Long> query = this.entityManager.createQuery("SELECT id FROM Tweet AS tweetId WHERE pre2015MigrationStatus<>99 AND discarded = FALSE ORDER BY id DESC", Long.class);
-        List<Long> ids = query.getResultList();
-        for (Long id : ids) {
-            result.add(getTweet(id));
-        }
+        List<Tweet> result = this.tweetRepository.getAllNonDiscarded();
         return result;
     }
 }
