@@ -71,4 +71,20 @@ public class Tweet {
         this.pre2015MigrationStatus = pre2015MigrationStatus;
     }
 
+    @Override
+    public boolean equals(Object o){
+
+        if(o == null || o.getClass() != this.getClass()){
+            return false;
+        }
+
+        Tweet tweet = (Tweet)o;
+
+        return tweet.getId().equals(getId())
+                && tweet.getPublisher().equals(getPublisher())
+                && tweet.getTweet().equals(getTweet())
+                && tweet.getDiscarded() == getDiscarded()
+                && tweet.getPre2015MigrationStatus().equals(getPre2015MigrationStatus());
+    }
+
 }
