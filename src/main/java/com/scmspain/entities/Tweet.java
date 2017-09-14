@@ -1,5 +1,7 @@
 package com.scmspain.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -17,7 +19,24 @@ public class Tweet {
     @Column (nullable=true)
     private Long pre2015MigrationStatus = 0L;
 
+    @JsonIgnore // To prevent from changing the contract
+    @Column (nullable=false)
+    private Boolean discarded;
+
+    public Boolean getDiscarded() {
+        return discarded;
+    }
+
+    public void setDiscarded(Boolean discarded) {
+        this.discarded = discarded;
+    }
+
     public Tweet() {
+    }
+
+    // Constructor for testing purposes
+    public Tweet(Boolean discarded) {
+        this.discarded = discarded;
     }
 
     public Long getId() {

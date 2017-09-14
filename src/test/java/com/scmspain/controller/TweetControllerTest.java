@@ -48,6 +48,18 @@ public class TweetControllerTest {
     }
 
     @Test
+    public void shouldReturn404WhenDiscardingTweetWithInvalidID() throws Exception {
+        mockMvc.perform(discardTweet(123L))
+                .andExpect(status().is(404));
+    }
+
+    @Test
+    public void shouldReturn400WhenDiscardingTweetWithoutID() throws Exception {
+        mockMvc.perform(discardTweet(null))
+                .andExpect(status().is(400));
+    }
+
+    @Test
     public void shouldReturnAllPublishedTweets() throws Exception {
         mockMvc.perform(newTweet("Yo", "How are you?"))
                 .andExpect(status().is(201));
@@ -60,10 +72,37 @@ public class TweetControllerTest {
         assertThat(new ObjectMapper().readValue(content, List.class).size()).isEqualTo(1);
     }
 
+    @Test // Caution, stateful test, depends on shouldReturnAllPublishedTweets
+    public void shouldDiscardATweet() throws Exception {
+
+        mockMvc.perform(discardTweet(1L))
+                .andExpect(status().is(201));
+
+        // Respond indempotently on repeated requests
+        mockMvc.perform(discardTweet(1L))
+                .andExpect(status().is(201));
+
+        MvcResult getResult = mockMvc.perform(get("/tweet"))
+                .andExpect(status().is(200))
+                .andReturn();
+
+        String content = getResult.getResponse().getContentAsString();
+        assertThat(new ObjectMapper().readValue(content, List.class).size()).isEqualTo(0);
+    }
+
     private MockHttpServletRequestBuilder newTweet(String publisher, String tweet) {
         return post("/tweet")
                 .contentType(MediaType.APPLICATION_JSON_UTF8)
                 .content(format("{\"publisher\": \"%s\", \"tweet\": \"%s\"}", publisher, tweet));
+    }
+
+    private MockHttpServletRequestBuilder discardTweet(Long id) {
+        MockHttpServletRequestBuilder request = post("/discarded")
+                .contentType(MediaType.APPLICATION_JSON_UTF8);
+        if(id != null){
+            request.content(format("{\"tweet\": \"%d\"}", id));
+        }
+        return request;
     }
 
 }

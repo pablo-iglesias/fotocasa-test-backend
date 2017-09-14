@@ -1,6 +1,8 @@
 package com.scmspain.services;
 
 import com.scmspain.entities.Tweet;
+import com.scmspain.exceptions.ResourceNotFoundException;
+
 import org.springframework.boot.actuate.metrics.writer.Delta;
 import org.springframework.boot.actuate.metrics.writer.MetricWriter;
 import org.springframework.stereotype.Service;
@@ -11,6 +13,8 @@ import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
+// TODO: Refactor comments
+// TODO: Create a tweet repository
 @Service
 @Transactional
 public class TweetService {
@@ -46,9 +50,36 @@ public class TweetService {
         Tweet tweet = new Tweet();
         tweet.setTweet(text);
         tweet.setPublisher(publisher);
+        tweet.setDiscarded(Boolean.FALSE);
 
         this.entityManager.persist(tweet);
         this.metricWriter.increment(new Delta<Number>("published-tweets", 1));
+    }
+
+    /**
+      Set a tweet to discarded status
+      Parameter - id - id of the Tweet to discard
+      Result - discarded Tweet
+     */
+    public void discardTweet(Long id){
+
+        if(id == null){
+            throw new IllegalArgumentException("To discard a tweet, you must provide an ID");
+        }
+
+        Tweet tweet = getTweet(id);
+
+        if(tweet == null){
+            throw new ResourceNotFoundException("Specified ID does not correspond to an existing tweet");
+        }
+
+        // The API is idempotent about discarding a tweet
+        // The response is always 201, persisting the object and incrementing the metric is done once
+        if(!tweet.getDiscarded()){
+            tweet.setDiscarded(Boolean.TRUE);
+            this.entityManager.persist(tweet);
+            this.metricWriter.increment(new Delta<Number>("discarded-tweets", 1));
+        }
     }
 
     /**
@@ -62,13 +93,12 @@ public class TweetService {
 
     /**
       Recover tweet from repository
-      Parameter - id - id of the Tweet to retrieve
       Result - retrieved Tweet
     */
     public List<Tweet> listAllTweets() {
         List<Tweet> result = new ArrayList<Tweet>();
         this.metricWriter.increment(new Delta<Number>("times-queried-tweets", 1));
-        TypedQuery<Long> query = this.entityManager.createQuery("SELECT id FROM Tweet AS tweetId WHERE pre2015MigrationStatus<>99 ORDER BY id DESC", Long.class);
+        TypedQuery<Long> query = this.entityManager.createQuery("SELECT id FROM Tweet AS tweetId WHERE pre2015MigrationStatus<>99 AND discarded = FALSE ORDER BY id DESC", Long.class);
         List<Long> ids = query.getResultList();
         for (Long id : ids) {
             result.add(getTweet(id));
