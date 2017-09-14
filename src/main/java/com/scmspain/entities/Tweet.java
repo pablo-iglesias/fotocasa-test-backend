@@ -14,13 +14,13 @@ public class Tweet {
     private Long id;
     @Column(nullable = false)
     private String publisher;
-    @Column(nullable = false, columnDefinition="CLOB")
+    @Column(nullable = false, columnDefinition = "CLOB")
     private String tweet;
-    @Column (nullable=true)
+    @Column(nullable = true)
     private Long pre2015MigrationStatus = 0L;
 
     @JsonIgnore // To prevent from changing the contract
-    @Column (nullable=false)
+    @Column(nullable = false)
     private Boolean discarded;
 
     public Boolean getDiscarded() {
@@ -72,18 +72,20 @@ public class Tweet {
     }
 
     @Override
-    public boolean equals(Object o){
+    public boolean equals(Object o) {
 
-        if(o == null || o.getClass() != this.getClass()){
+        if (o == null || o.getClass() != this.getClass()) {
             return false;
         }
 
-        Tweet tweet = (Tweet)o;
+        Tweet tweet = (Tweet) o;
 
-        return tweet.getId().equals(getId())
+        return (tweet.getId() != null && tweet.getId().equals(getId())
+                || tweet.getId() == null && getId() == null)
                 && tweet.getPublisher().equals(getPublisher())
                 && tweet.getTweet().equals(getTweet())
-                && tweet.getDiscarded() == getDiscarded()
+                && (tweet.getDiscarded() != null && tweet.getDiscarded().equals(getDiscarded())
+                || tweet.getDiscarded() == null && getDiscarded() == null)
                 && tweet.getPre2015MigrationStatus().equals(getPre2015MigrationStatus());
     }
 

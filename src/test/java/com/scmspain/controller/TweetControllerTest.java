@@ -69,15 +69,21 @@ public class TweetControllerTest {
 
     @Test
     public void shouldReturnAllPublishedTweets() throws Exception {
-        mockMvc.perform(newTweet("Yo", "How are you?"))
-                .andExpect(status().is(201));
 
+        mockMvc.perform(newTweet("Yo", "My very exclusive one"));
+
+        // Retrieve list of tweets, expects HTTP status 200
         MvcResult getResult = mockMvc.perform(get("/tweet"))
                 .andExpect(status().is(200))
                 .andReturn();
 
         String content = getResult.getResponse().getContentAsString();
-        assertThat(new ObjectMapper().readValue(content, List.class).size()).isEqualTo(1);
+        List<Tweet> tweetList = parseJsonTweetList(content);
+
+        // Assert that at least the first tweet of the list is the same as the last created
+        Tweet lastTweet = tweetList.get(0);
+        assertThat(lastTweet.getPublisher()).isEqualTo("Yo");
+        assertThat(lastTweet.getTweet()).isEqualTo("My very exclusive one");
     }
 
     @Test
@@ -91,7 +97,7 @@ public class TweetControllerTest {
         String content = getResult.getResponse().getContentAsString();
         Tweet tweet = parseJsonTweetAtPosition(content, 0);
 
-        // Proceed to discard the tweet
+        // Proceed to discard the tweet, expects 201
         mockMvc.perform(discardTweet(tweet.getId()))
                 .andExpect(status().is(201));
 
@@ -101,7 +107,6 @@ public class TweetControllerTest {
 
         // Retrieve the list of tweets again
         getResult = mockMvc.perform(get("/tweet"))
-                .andExpect(status().is(200))
                 .andReturn();
 
         // Check that the new tweet is not in the list anymore
@@ -128,7 +133,7 @@ public class TweetControllerTest {
             mockMvc.perform(discardTweet(tweet.getId()));
         }
 
-        // Retrieve list of discarded tweets
+        // Retrieve list of discarded tweets and expect the status to be 200
         getResult = mockMvc.perform(get("/discarded"))
                 .andExpect(status().is(200))
                 .andReturn();

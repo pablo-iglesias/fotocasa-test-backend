@@ -24,30 +24,27 @@ public class TweetServiceTest {
     private final static Long ALREADY_DISCARDED_TWEET_ID = 2L;
     private final static Long INEXISTANT_TWEET_ID = 3L;
 
-    private EntityManager entityManager;
     private TweetRepository tweetRepository;
     private MetricWriter metricWriter;
     private TweetService tweetService;
 
     @Before
     public void setUp() throws Exception {
-        this.entityManager = mock(EntityManager.class);
+        this.tweetRepository = mock(TweetRepository.class);
         this.metricWriter = mock(MetricWriter.class);
 
         // Return a non-discarded tweet when asked for the tweet with id 1
-        Mockito.when(entityManager.find(Tweet.class, NON_DISCARDED_TWEET_ID))
+        Mockito.when(tweetRepository.get(NON_DISCARDED_TWEET_ID))
                 .thenReturn(new Tweet(false));
 
         // Return a discarded tweet when asked for the tweet with id 2
-        Mockito.when(entityManager.find(Tweet.class, ALREADY_DISCARDED_TWEET_ID))
+        Mockito.when(tweetRepository.get(ALREADY_DISCARDED_TWEET_ID))
                 .thenReturn(new Tweet(true));
 
         // Return null when asked for the tweet with id 3
-        Mockito.when(entityManager.find(Tweet.class, INEXISTANT_TWEET_ID))
+        Mockito.when(tweetRepository.get(INEXISTANT_TWEET_ID))
                 .thenReturn(null);
 
-
-        this.tweetRepository = new TweetRepositoryRelational(entityManager);
         this.tweetService = new TweetService(tweetRepository, metricWriter);
     }
 
@@ -55,7 +52,7 @@ public class TweetServiceTest {
     public void shouldInsertANewTweet() throws Exception {
         tweetService.publishTweet("Guybrush Threepwood", "I am Guybrush Threepwood, mighty pirate.");
 
-        verify(entityManager).persist(any(Tweet.class));
+        verify(tweetRepository).persist(any(Tweet.class));
         verify(metricWriter).increment(any(Delta.class));
     }
 
@@ -64,7 +61,7 @@ public class TweetServiceTest {
     public void shouldInsertANewTweetIgnoringEmbeddedLinks() throws Exception {
         tweetService.publishTweet("Guybrush Threepwood", "I am Guybrush http://www.vidaextra.com/aventura-plataformas/el-demake-de-the-curse-of-monkey-island-esta-cada-vez-mas-cerca-de-ver-la-luz Threepwood, mighty pirate https://www.vidaextra.com/aventura-plataformas/el-demake-de-the-curse-of-monkey-island-esta-cada-vez-mas-cerca-de-ver-la-luz");
 
-        verify(entityManager).persist(any(Tweet.class));
+        verify(tweetRepository).persist(any(Tweet.class));
         verify(metricWriter).increment(any(Delta.class));
     }
 
@@ -72,7 +69,7 @@ public class TweetServiceTest {
     public void shouldDiscardATweet() throws Exception {
         tweetService.discardTweet(NON_DISCARDED_TWEET_ID);
 
-        verify(entityManager).persist(any(Tweet.class));
+        verify(tweetRepository).persist(any(Tweet.class));
         verify(metricWriter).increment(any(Delta.class));
     }
 
@@ -81,8 +78,24 @@ public class TweetServiceTest {
     public void discardTweetShouldNotPerformIfAlreadyDiscarded() throws Exception {
         tweetService.discardTweet(ALREADY_DISCARDED_TWEET_ID);
 
-        verify(entityManager, never()).persist(any(Tweet.class));
+        verify(tweetRepository, never()).persist(any(Tweet.class));
         verify(metricWriter, never()).increment(any(Delta.class));
+    }
+
+    @Test
+    public void shouldListNonDiscardedTweets() throws Exception {
+        tweetService.listAllTweets();
+
+        verify(tweetRepository).getAllNonDiscarded();
+        verify(metricWriter).increment(any(Delta.class));
+    }
+
+    @Test
+    public void shouldListDiscardedTweets() throws Exception {
+        tweetService.listDiscardedTweets();
+
+        verify(tweetRepository).getAllDiscarded();
+        verify(metricWriter).increment(any(Delta.class));
     }
 
     @Test(expected = IllegalArgumentException.class)
