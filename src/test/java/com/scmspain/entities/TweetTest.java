@@ -10,11 +10,15 @@ public class TweetTest {
     public void shouldQualifyAsEqual(){
 
         Tweet tweetA = new Tweet();
+        Tweet tweetB = new Tweet();
+
+        assertThat(tweetA).isEqualTo(tweetB);
+        assertThat(tweetA.equals(tweetB)).isTrue();
+
         tweetA.setTweet("Uno");
         tweetA.setPublisher("Dos");
         tweetA.setDiscarded(false);
 
-        Tweet tweetB = new Tweet();
         tweetB.setTweet("Uno");
         tweetB.setPublisher("Dos");
         tweetB.setDiscarded(false);

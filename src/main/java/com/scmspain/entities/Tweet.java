@@ -82,8 +82,10 @@ public class Tweet {
 
         return (tweet.getId() != null && tweet.getId().equals(getId())
                 || tweet.getId() == null && getId() == null)
-                && tweet.getPublisher().equals(getPublisher())
-                && tweet.getTweet().equals(getTweet())
+                && (tweet.getPublisher() != null && tweet.getPublisher().equals(getPublisher())
+                || tweet.getPublisher() == null && getPublisher() == null)
+                && (tweet.getTweet() != null && tweet.getTweet().equals(getTweet())
+                || tweet.getTweet() == null && getTweet() == null)
                 && (tweet.getDiscarded() != null && tweet.getDiscarded().equals(getDiscarded())
                 || tweet.getDiscarded() == null && getDiscarded() == null)
                 && tweet.getPre2015MigrationStatus().equals(getPre2015MigrationStatus());
