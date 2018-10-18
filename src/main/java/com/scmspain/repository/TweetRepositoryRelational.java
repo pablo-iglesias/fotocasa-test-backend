@@ -1,11 +1,13 @@
 package com.scmspain.repository;
 
 import com.scmspain.entities.Tweet;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import java.util.List;
 
+@Transactional
 public class TweetRepositoryRelational implements TweetRepository{
 
     private String entityName;

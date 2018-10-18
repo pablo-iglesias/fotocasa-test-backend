@@ -8,11 +8,9 @@ import org.springframework.boot.actuate.metrics.writer.Delta;
 import org.springframework.boot.actuate.metrics.writer.MetricWriter;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
 import java.util.List;
 
 @Service
-@Transactional
 public class TweetService {
     private TweetRepository tweetRepository;
     private MetricWriter metricWriter;
